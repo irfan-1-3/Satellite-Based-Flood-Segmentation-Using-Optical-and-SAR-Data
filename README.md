@@ -238,23 +238,6 @@ Flood segmentation is affected by class imbalance because flood pixels may repre
 
 This implementation combines **weighted cross-entropy loss** and **Tversky loss**.
 
-The total loss is:
-
-\[
-\mathcal{L}
-=
-\mathcal{L}_{\mathrm{WCE}}
-+
-\lambda_{\mathrm{region}}
-\mathcal{L}_{\mathrm{Tversky}}
-\]
-
-where:
-
-- \(\mathcal{L}_{\mathrm{WCE}}\) is weighted cross-entropy loss.
-- \(\mathcal{L}_{\mathrm{Tversky}}\) is the region-based Tversky loss.
-- \(\lambda_{\mathrm{region}}\) controls the contribution of the region loss.
-
 ### Weighted cross-entropy
 
 Weighted cross-entropy assigns different weights to the background and flood classes. The class weights are calculated from the training-set class distribution, with a configurable cap on the flood-class weight.
@@ -263,27 +246,6 @@ This helps prevent the majority background class from dominating the loss.
 
 ### Tversky loss
 
-The Tversky index is:
-
-\[
-TI =
-\frac{TP}
-{TP+\alpha FP+\beta FN}
-\]
-
-The corresponding loss is:
-
-\[
-\mathcal{L}_{\mathrm{Tversky}}=1-TI
-\]
-
-where:
-
-- \(TP\): true-positive flood pixels
-- \(FP\): false-positive flood pixels
-- \(FN\): false-negative flood pixels
-- \(\alpha\): weight assigned to false positives
-- \(\beta\): weight assigned to false negatives
 
 The configuration uses:
 
@@ -356,11 +318,7 @@ The training utilities support PyTorch Distributed Data Parallel (DDP).
 
 When launched with `torchrun`, each process is assigned a GPU and participates in distributed training. The effective batch size is:
 
-\[
-B_{\mathrm{effective}}
-=
-B_{\mathrm{GPU}}\times N_{\mathrm{GPUs}}
-\]
+effective = Batch_Size x N_GPUs
 
 With the default configuration of four samples per GPU and two GPUs, the effective batch size is eight.
 
@@ -369,50 +327,6 @@ If the script is run without `torchrun`, it falls back to a single-process run o
 ---
 
 ## Evaluation Metrics
-
-The model is evaluated using the following metrics.
-
-### Intersection over Union (IoU)
-
-For a class \(c\):
-
-\[
-IoU_c =
-\frac{TP_c}
-{TP_c+FP_c+FN_c}
-\]
-
-### Mean Intersection over Union (mIoU)
-
-For the two classes:
-
-\[
-mIoU =
-\frac{IoU_{\mathrm{background}}
-+IoU_{\mathrm{flood}}}{2}
-\]
-
-### Precision
-
-\[
-Precision =
-\frac{TP}{TP+FP}
-\]
-
-### Recall
-
-\[
-Recall =
-\frac{TP}{TP+FN}
-\]
-
-### F1-score
-
-\[
-F1 =
-2\frac{Precision \times Recall}
-{Precision+Recall}
-\]
 
 The training pipeline tracks validation loss, accuracy, precision, recall, F1-score, and mIoU. The best checkpoint is selected using validation mIoU, and the test set is evaluated using the selected checkpoint.
 
